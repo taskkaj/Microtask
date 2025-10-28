@@ -1,0 +1,291 @@
+<!--
+Microtask Marketplace Template — TaskWave
+Filename: index.html
+Description: A static, front-end template for a microtask marketplace where users can post/accept small paid tasks (Surveys, Data labeling, Testing, Creative micro-jobs).
+
+IMPORTANT: This template is a front-end prototype only (HTML/CSS/JS). It does NOT implement server-side payment processing, authentication, or real task execution. To operate a live platform you MUST implement secure authentication, server-side moderation, anti-abuse controls, and legal & terms-of-service compliance.
+
+This template includes:
+- Landing and dashboard views (client-side toggles)
+- Job posting and job listing UI
+- Wallet simulation (client-only) and simple task purchase/accept flow
+- Admin / moderation panel (UI only)
+- Notes and warnings about prohibited tasks (e.g., fake engagement), and moderation guidelines
+
+Suggested Brand Name: TaskWave
+Tagline (Bangla): "ক্ষুদ্র কাজ, দ্রুত আয়"
+Other name options: MicroEarn Hub, TaskBazar, JobRipple
+
+Deploy: Save as index.html and upload to GitHub Pages or Netlify for a static demo. For production you need a backend (Node/Python/Rails), database, payment gateway (Stripe/PayPal), and verification flows.
+-->
+
+<!doctype html>
+<html lang="bn">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TaskWave — ক্ষুদ্র কাজ, দ্রুত আয়</title>
+  <meta name="description" content="TaskWave: একটি মাইক্রো-টাস্ক মার্কেটপ্লেস — ছোট কাজ করে আয় করুন বা কাজ পোস্ট করুন।" />
+  <meta name="keywords" content="microtask, earn, gig, task, freelance, Bangladesh, TaskWave" />
+
+  <style>
+    :root{--accent:#06b6d4;--dark:#0f1724;--muted:#6b7280;--card:#ffffff}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans Bengali',Arial;margin:0;background:#f8fafc;color:var(--dark)}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    header{background:linear-gradient(90deg,#ffffff,#eefcff);border-bottom:1px solid #e6eef0}
+    .nav{display:flex;justify-content:space-between;align-items:center;padding:14px 20px}
+    .brand{font-weight:800;color:var(--accent)}
+    .nav a{margin-left:12px;text-decoration:none;color:var(--dark)}
+
+    .hero{display:flex;gap:20px;align-items:center;padding:28px 0}
+    .hero-left{flex:1}
+    .hero-right{width:360px}
+    .card{background:var(--card);padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(15,23,42,0.06)}
+    .btn{display:inline-block;padding:10px 14px;border-radius:8px;background:var(--accent);color:white;text-decoration:none}
+
+    .columns{display:grid;grid-template-columns:2fr 1fr;gap:18px;margin-top:18px}
+    .task-list{display:grid;gap:12px}
+    .task{padding:12px;border-radius:10px;background:#fff;border:1px solid #e6eef0}
+    .muted{color:var(--muted);font-size:0.95rem}
+
+    .form-row{display:flex;gap:10px}
+    input,textarea,select{width:100%;padding:8px;border-radius:8px;border:1px solid #d1d5db}
+
+    footer{padding:18px 0;text-align:center;color:var(--muted);margin-top:30px}
+
+    @media(max-width:900px){.columns{grid-template-columns:1fr} .hero-right{width:100%}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <div class="brand">TaskWave</div>
+      <div>
+        <a href="#">হোম</a>
+        <a href="#post">কাজ পোস্ট করুন</a>
+        <a href="#dashboard">ড্যাশবোর্ড</a>
+        <a href="#help">হেল্প</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-left">
+        <h1>TaskWave — ক্ষুদ্র কাজ, দ্রুত আয়</h1>
+        <p class="muted">আপনি কাজ করতে চান বা ছোট কাজ পোস্ট করে লোক নিয়োগ করতে চান — এখানে শুরু করুন।</p>
+
+        <div style="margin-top:12px">
+          <a class="btn" href="#post">কাজ পোস্ট করুন</a>
+          <a style="margin-left:10px" href="#tasks">সংস্থান দেখুন</a>
+        </div>
+
+        <div style="margin-top:18px" class="card">
+          <h3 style="margin-top:0">কেন TaskWave?</h3>
+          <ul class="muted">
+            <li>সহজ মাইক্রো-টাস্ক: দ্রুত ফলাফল এবং মাল্টিপল পেয়মেন্ট অপশন</li>
+            <li>রেভিউ ও রেটিং সিস্টেম — নির্ভরযোগ্যতা বাড়াতে সাহায্য করে</li>
+            <li>অ্যাডমিন মডারেশন ও ফ্রড-প্রিভেনশন টুল (UI only)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="hero-right card">
+        <h3 style="margin-top:0">ডেমো ওয়ালেট</h3>
+        <p class="muted">আপনার ব্যালেন্স:</p>
+        <div style="font-size:1.6rem;font-weight:700">৳ <span id="wallet">0</span></div>
+        <div style="margin-top:10px">
+          <button class="btn" onclick="addFundsPrompt()">ব্যালেন্স বাড়ান (ডেমো)</button>
+        </div>
+        <hr style="margin:12px 0" />
+        <h4 style="margin:6px 0">দ্রুত টাস্ক</h4>
+        <div class="muted">ব্রাউজ করে দ্রুত কাজ গ্রহণ করুন — সিস্টেমটি এখানে কেবল UI সিমুলেশন দেখায়।</div>
+      </div>
+    </section>
+
+    <section class="columns">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h2 id="tasks">উপলব্ধ কাজ</h2>
+          <div class="muted">কাজ: <span id="taskCount">0</span></div>
+        </div>
+
+        <div class="task-list" id="taskList">
+          <!-- tasks inserted by JS -->
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin-top:0">কাজ খোঁজার ফিল্টার</h3>
+          <div style="display:flex;gap:10px">
+            <select id="categoryFilter">
+              <option value="all">সকল ক্যাটাগরি</option>
+              <option value="testing">অ্যাপ/ওয়েব টেস্টিং</option>
+              <option value="data">ডেটা লেবেলিং</option>
+              <option value="creative">ক্রিয়েটিভ মাইক্রো-জব</option>
+              <option value="social">সোশ্যাল (অনুগত নীতি প্রযোজ্য)</option>
+            </select>
+            <button class="btn" onclick="applyFilter()">ফিল্টার</button>
+          </div>
+        </div>
+      </div>
+
+      <aside>
+        <div class="card">
+          <h3 style="margin-top:0">কাজ পোস্ট করুন</h3>
+          <form id="postForm" onsubmit="postTask(event)">
+            <p><label>শিরোনাম<br><input id="title" required></label></p>
+            <p><label>বর্ণনা<br><textarea id="desc" rows="3" required></textarea></label></p>
+            <p><label>ক্যাটাগরি<br>
+              <select id="category">
+                <option value="testing">অ্যাপ/ওয়েব টেস্টিং</option>
+                <option value="data">ডেটা লেবেলিং</option>
+                <option value="creative">ক্রিয়েটিভ মাইক্রো-জব</option>
+                <option value="social">সোশ্যাল (নির্দেশনা অনুসরণ করুন)</option>
+              </select>
+            </label></p>
+            <p class="form-row"><label>পরিশোধ (৳)<br><input id="price" type="number" min="1" required></label><label>কাজের পরিমাণ<br><input id="qty" type="number" min="1" value="1" required></label></p>
+            <p class="muted">নোট: সোশ্যাল ক্যাটাগরির কাজ পোস্ট করার আগে অনুগ্রহ করে প্ল্যাটফর্মের নীতিমালা পড়ে নিন।</p>
+            <p><button class="btn" type="submit">পোস্ট করুন (ডেমো)</button></p>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin-top:0">অ্যাডমিন / মডারেশন (UI)</h3>
+          <p class="muted">খারাপ কাজ ব্লক করুন, ব্যবহারকারী রিপোর্ট দেখুন, কাস্টম নোট যোগ করুন। (ব্যাকএন্ড প্রয়োজন)</p>
+          <button onclick="openAdmin()" class="btn">অ্যাডমিন খুলুন</button>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin-top:0">নিয়ম ও নির্দেশিকা</h3>
+          <ul class="muted">
+            <li>অত্যন্ত গুরুত্বপূর্ণ: প্ল্যাটফর্মের নীতির বিরুদ্ধে কাজ (ফেক সাবস্ক্রাইবার/ফেক-এনগেজমেন্ট) স্পষ্টভাবে নিষিদ্ধ করা উচিত।</li>
+            <li>প্রত্যেক কাজের জন্য ভেরিফিকেশন নথি/প্রুফ চাওয়া হবে।</li>
+            <li>অ্যাডমিন-রিভিউ অবলম্বন করুন এবং রিপোর্ট সিস্টেম চালু রাখুন।</li>
+          </ul>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Admin modal (UI only) -->
+    <div id="adminModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);align-items:center;justify-content:center">
+      <div style="background:#fff;padding:16px;border-radius:12px;width:90%;max-width:800px;">
+        <h3 style="margin-top:0">অ্যাডমিন প্যানেল</h3>
+        <p class="muted">এই প্যানেলে কাজগুলি দেখুন ও ব্লক/অপ্রকাশ করুন (UI only)।</p>
+        <div id="adminList" style="max-height:360px;overflow:auto"></div>
+        <div style="margin-top:10px;text-align:right">
+          <button class="btn" onclick="closeAdmin()">বন্ধ করুন</button>
+        </div>
+      </div>
+    </div>
+
+    <section id="help" style="margin-top:20px">
+      <div class="card">
+        <h3 style="margin-top:0">ডেভেলপার নোট ও নিরাপত্তা</h3>
+        <ul class="muted">
+          <li>এই ফ্রন্ট-এন্ড টেমপ্লেটটি ডেমো উদ্দেশ্যে। প্রকৃত সাইট চালুর আগে নিরাপদ অথেনটিকেশন, সার্ভার-সাইড ভ্যালিডেশন এবং পেমেন্ট ইন্টিগ্রেশন (যেমন Stripe/PayPal) প্রয়োজন।</li>
+          <li>সোশ্যাল-এনগেজমেন্ট সংক্রান্ত কাজ গ্রহণ করার আগে সোশ্যাল নেটওয়ার্কের জনকল্যাণ নীতি ও ব্যবহারকারীর শর্তাবলী (TOS) যাচাই করুন। অনৈতিক/বাতিল কাজ ব্লক করুন।</li>
+          <li>ফ্রড প্রিভেনশন: কেপচা, আইপি লিমিট, রিভিউ-ভেরিফিকেশন, কাজের প্রুফ সাবমিশন ও অডিট সক্রিয় করুন।</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      © <span id="year"></span> TaskWave — ক্ষুদ্র কাজ, দ্রুত আয়
+    </footer>
+  </main>
+
+  <script>
+    // Demo JS (client-side only)
+    const taskListEl = document.getElementById('taskList');
+    const adminListEl = document.getElementById('adminList');
+    const taskCountEl = document.getElementById('taskCount');
+    const walletEl = document.getElementById('wallet');
+    const yearEl = document.getElementById('year');
+    yearEl.textContent = new Date().getFullYear();
+
+    let wallet = 0;
+    let tasks = [];
+
+    function renderTasks(filter='all'){
+      taskListEl.innerHTML='';
+      const filtered = tasks.filter(t => filter==='all' || t.category===filter);
+      taskCountEl.textContent = filtered.length;
+      filtered.forEach((t,i)=>{
+        const div = document.createElement('div'); div.className='task';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><strong>${escapeHtml(t.title)}</strong><div class="muted">৳${t.price} x ${t.qty}</div></div>
+          <p class="muted">${escapeHtml(t.desc)}</p>
+          <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn" onclick="acceptTask(${i})">গ্রহণ করুন</button></div>`;
+        taskListEl.appendChild(div);
+      });
+      renderAdmin();
+    }
+
+    function renderAdmin(){
+      adminListEl.innerHTML='';
+      tasks.forEach((t,i)=>{
+        const d = document.createElement('div'); d.style.padding='8px'; d.style.borderBottom='1px solid #eef2f4';
+        d.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center"><div><strong>${escapeHtml(t.title)}</strong> <div class='muted'>${escapeHtml(t.category)} • ৳${t.price} • qty ${t.qty}</div></div>
+          <div style="display:flex;gap:8px"><button onclick="togglePublish(${i})">${t.published? 'Unpublish': 'Publish'}</button><button onclick="removeTask(${i})">Remove</button></div></div>`;
+        adminListEl.appendChild(d);
+      });
+    }
+
+    function postTask(e){
+      e.preventDefault();
+      const title = document.getElementById('title').value.trim();
+      const desc = document.getElementById('desc').value.trim();
+      const category = document.getElementById('category').value;
+      const price = Number(document.getElementById('price').value);
+      const qty = Number(document.getElementById('qty').value);
+      if(!title||!desc||price<=0||qty<=0) return alert('সঠিক তথ্য দিন');
+
+      // Prohibited quick-check for suspicious social tasks
+      if(category==='social' && /subscrib|like|follow|fake|bot/i.test(title+desc)){
+        if(!confirm('সোশ্যাল ক্যাটাগরির কাজ হতে পারে প্ল্যাটফর্ম নীতির বিরুদ্ধে। আপনি নিশ্চিত?')) return;
+      }
+
+      tasks.push({title,desc,category,price,qty,published:true});
+      document.getElementById('postForm').reset();
+      renderTasks(document.getElementById('categoryFilter').value);
+      alert('কাজ পোস্ট করা হয়েছে (ডেমো — UI only)');
+    }
+
+    function acceptTask(index){
+      const t = tasks[index];
+      if(!t || !t.published) return alert('টাস্ক পাওয়া যায়নি');
+      if(wallet < t.price) return alert('ব্যালেন্স পর্যাপ্ত নয় — আগে ব্যালেন্স বাড়ান');
+      if(!confirm(`আপনি '${t.title}' গ্রহণ করতে চান?`)) return;
+      // Deduct price and simulate completion
+      wallet -= t.price; updateWallet();
+      t.qty -= 1; if(t.qty<=0) tasks.splice(index,1);
+      renderTasks(document.getElementById('categoryFilter').value);
+      alert('টাস্ক গ্রহণ করা হয়েছে — ডেমো মোডে তাত্ক্ষণিক সমাপ্তির ওয়্যার-ফ্লো দেখানো হয়েছে');
+    }
+
+    function addFundsPrompt(){
+      const amt = Number(prompt('কত টাকা যোগ করবেন? (ডেমো) — সংখ্যা লিখুন'));
+      if(amt && amt>0){ wallet += amt; updateWallet(); }
+    }
+    function updateWallet(){ walletEl.textContent = wallet; }
+
+    function applyFilter(){ const v = document.getElementById('categoryFilter').value; renderTasks(v); }
+
+    function openAdmin(){ document.getElementById('adminModal').style.display='flex'; }
+    function closeAdmin(){ document.getElementById('adminModal').style.display='none'; }
+
+    function togglePublish(i){ tasks[i].published = !tasks[i].published; renderTasks(document.getElementById('categoryFilter').value); }
+    function removeTask(i){ if(confirm('মুছে ফেলতে চান?')){ tasks.splice(i,1); renderTasks(document.getElementById('categoryFilter').value); } }
+
+    // small helper
+    function escapeHtml(s){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+    // seed demo tasks
+    tasks.push({title:'অ্যাপ বাগ রিপোর্ট করুন',desc:'প্রতিটি বাগ রিপোর্টের জন্য নিদের্শনা মেনে স্ক্রিনশট দিন।',category:'testing',price:20,qty:5,published:true});
+    tasks.push({title:'প্রোডাক্ট ছবিতে ট্যাগিং',desc:'ছবির বস্তুগুলোকে লেবেল করুন (data labeling)।',category:'data',price:15,qty:10,published:true});
+    tasks.push({title:'শিরোনাম লিখুন — ছোট ক্লিপ',desc:'ভিডিওর জন্য 5টি সম্ভাব্য শিরোনাম লিখুন।',category:'creative',price:30,qty:3,published:true});
+
+    renderTasks(); updateWallet();
+  </script>
+</body>
+</html>
