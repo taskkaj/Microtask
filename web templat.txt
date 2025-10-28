@@ -1,4 +1,4 @@
-<!--
+<!--doc type>
 Microtask Marketplace Template — TaskWave
 Filename: index.html
 Description: A static, front-end template for a microtask marketplace where users can post/accept small paid tasks (Surveys, Data labeling, Testing, Creative micro-jobs).
@@ -289,3 +289,4 @@ Deploy: Save as index.html and upload to GitHub Pages or Netlify for a static de
   </script>
 </body>
 </html>
+
